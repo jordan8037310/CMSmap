@@ -1215,9 +1215,9 @@ class ThreadScanner(threading.Thread):
             noRedirOpener = urllib2.build_opener(NoRedirects())
             try:
                 noRedirOpener.open(req); self.pluginsFound.append(plugin)
-            except urllib2.HTTPError, e:
+            except urllib2.HTTPError as e:
                 if e.code != self.notExistingCode and len(e.read()) not in self.notValidLen : self.pluginsFound.append(plugin)
-            except urllib2.URLError, e:
+            except urllib2.URLError as e:
                 msg = "Thread Error: If this error persists, reduce number of threads"; print report.info(msg)
             self.q.task_done()       
 
