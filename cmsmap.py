@@ -1862,7 +1862,7 @@ class Report:
     def WriteTextFile(self, msg):
         if output:
             self.log += "\n"+msg
-            with open(self.fn,"w"):
+            with open(self.fn,"w") as f:
                 f.write(self.log)
     
     def WriteHTMLFile(self):
