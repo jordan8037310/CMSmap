@@ -1103,8 +1103,12 @@ class ExploitDBSearch:
     def Core(self):
         if self.query is not None:
             # Get this value from their classes      
-            msg = "Searching Core Vulnerabilities for version "+self.query ; report.verbose(msg)           
-            htmltext = urllib2.urlopen("http://www.exploit-db.com/search/?action=search&filter_description="+self.cmstype+"+"+self.query).read()
+            msg = "Searching Core Vulnerabilities for version "+self.query ; report.verbose(msg)
+            try:
+                htmltext = urllib2.urlopen("http://www.exploit-db.com/search/?action=search&filter_description="+self.cmstype+"+"+self.query).read()
+            except urllib2.HTTPError as e:
+                #print e.code
+                pass
             regex = '/download/(.+?)/">'
             pattern =  re.compile(regex)
             ExploitID = re.findall(pattern,htmltext)
