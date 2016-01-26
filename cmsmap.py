@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from __future__ import print_function
 import smtplib, base64, os, sys, getopt, urllib2, urllib, re, socket, time, httplib, tarfile
 import itertools, urlparse, threading, Queue, multiprocessing, cookielib, datetime, zipfile
 import platform, signal
@@ -56,15 +57,15 @@ class Initialize:
         self.SortUniqueFile()
 
     def SortUniqueFile(self) :
-        for list in [self.wp_plugins, 
+        for List in [self.wp_plugins, 
                      self.wp_plugins_small, 
                      self.wp_themes_small, 
                      self.joo_plugins, 
                      self.joo_plugins_small , 
                      self.dru_plugins, 
                      self.dru_plugins_small]:
-            readlist = sorted(set([line.strip() for line in open(list)]))
-            f = open(list, "w")
+            readlist = sorted(set([line.strip() for line in open(List)]))
+            f = open(List, "w")
             for plugin in readlist: 
                 f.write("%s\n" % plugin)
             f.close()
@@ -210,12 +211,12 @@ class Scanner:
                 htmltext = urllib2.urlopen(req).read()       
                 if len(htmltext) not in self.notValidLen and self.force is None:
                     self.force = 'W'
-            except urllib2.HTTPError, e:
-                #print e.code
+            except urllib2.HTTPError as e:
+                #print(e.code)
                 if e.code == 403 and len(htmltext) not in self.notValidLen and self.force is None:                 
                     self.force = 'W'
                 else:
-                    #print e.code
+                    #print(e.code)
                     msg = "WordPress Config File Not Found: "+self.url+"/wp-config.php"
                     report.verbose(msg)           
             # Joomla
@@ -224,11 +225,11 @@ class Scanner:
                 htmltext = urllib2.urlopen(req).read()              
                 if len(htmltext) not in self.notValidLen and self.force is None:
                     self.force = 'J'
-            except urllib2.HTTPError, e:
+            except urllib2.HTTPError as e:
                 if e.code == 403 and len(e.read()) not in self.notValidLen and self.force is None:
                     self.force = 'J'
                 else:
-                    #print e.code
+                    #print(e.code)
                     msg = "Joomla Config File Not Found: "+self.url+"/configuration.php"
                     report.verbose(msg)              
             # Drupal
@@ -237,7 +238,7 @@ class Scanner:
                 htmltext = urllib2.urlopen(req).read()
                 if len(htmltext) not in self.notValidLen and self.force is None:
                     self.force = 'D'                               
-            except urllib2.HTTPError, e:
+            except urllib2.HTTPError as e:
                 pUrl = urlparse.urlparse(self.url)
                 netloc = pUrl.netloc.lower()
                 req = urllib2.Request(self.url+"/sites/"+netloc+"/settings.php")
@@ -245,19 +246,19 @@ class Scanner:
                     urllib2.urlopen(req)
                     if len(e.read()) not in self.notValidLen and self.force is None:
                         self.force = 'D'
-                except urllib2.HTTPError, e:
+                except urllib2.HTTPError as e:
                     if e.code == 403 and len(e.read()) not in self.notValidLen and self.force is None:
                         self.force = 'D'
                     else:
                         if verbose:
-                            #print e.code
+                            #print(e.code)
                             msg = "Drupal Config File Not Found: "+self.url+"/sites/default/settings.php"
                             report.verbose(msg) 
             if self.force is None :                
                 msg = "CMS detection failed :("; report.error(msg)
                 msg =  "Use -f to force CMSmap to scan (W)ordpress, (J)oomla or (D)rupal"; report.error(msg)
                 sys.exit()               
-        except urllib2.URLError, e:
+        except urllib2.URLError as e:
             msg = "Website Unreachable: "+self.url
             report.error(msg)
             sys.exit()
@@ -286,11 +287,11 @@ class Scanner:
             try:
                 htmltext = noRedirOpener.open(req).read()
                 self.notValidLen.append(len(htmltext))
-            except urllib2.HTTPError, e:
-                #print e.code
+            except urllib2.HTTPError as e:
+                #print(e.code)
                 self.notValidLen.append(len(e.read()))
                 self.notExistingCode = e.code
-            except urllib2.URLError, e:
+            except urllib2.URLError as e:
                 msg = "Website Unreachable: "+self.url
                 report.error(msg)
                 sys.exit()      
@@ -300,11 +301,11 @@ class Scanner:
             try:
                 htmltext = urllib2.urlopen(req).read() 
                 self.notValidLen.append(len(htmltext))
-            except urllib2.HTTPError, e:
-                #print e.code
+            except urllib2.HTTPError as e:
+                #print(e.code)
                 self.notValidLen.append(len(e.read()))
                 self.notExistingCode = e.code
-            except urllib2.URLError, e:
+            except urllib2.URLError as e:
                 msg = "Website Unreachable: "+self.url
                 report.error(msg)
                 sys.exit()
@@ -377,14 +378,14 @@ class WPScan:
             version = re.findall(pattern,htmltext)    
             if version:
                 msg = "Wordpress Version: "+version[0]; report.info(msg)                     
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             try:
                 req = urllib2.Request(self.url,None,self.headers)
                 htmltext = urllib2.urlopen(req).read()
                 version = re.findall('<meta name="generator" content="WordPress (\d+\.\d+[\.\d+]*)"', htmltext)
                 if version:
                     msg = "Wordpress Version: "+version[0]; report.info(msg)
-            except urllib2.HTTPError, e:
+            except urllib2.HTTPError as e:
                 pass
         if version: 
            if version[0] in self.versions :
@@ -405,8 +406,8 @@ class WPScan:
                 self.theme = CurrentTheme[0]
                 msg = "Wordpress Theme: "+self.theme ; report.info(msg)
                 searcher.query = [self.theme]; searcher.Themes()
-        except urllib2.HTTPError, e:
-            #print e.code
+        except urllib2.HTTPError as e:
+            #print(e.code)
             pass
         
     def WPConfigFiles(self):
@@ -416,7 +417,7 @@ class WPScan:
                 htmltext = urllib2.urlopen(req).read()
                 if len(htmltext) not in self.notValidLen:
                     msg = "Configuration File Found: " +self.url+"/wp-config"+file; report.high(msg)
-            except urllib2.HTTPError, e:
+            except urllib2.HTTPError as e:
                 pass
 
     def WPDefaultFiles(self):
@@ -446,8 +447,8 @@ class WPScan:
                 htmltext = urllib2.urlopen(req).read()
                 if len(htmltext) not in self.notValidLen:
                     self.defFilesFound.append(self.url+file)
-            except urllib2.HTTPError, e:
-                #print e.code
+            except urllib2.HTTPError as e:
+                #print(e.code)
                 pass
         for file in self.defFilesFound:
             msg = file; report.info(msg)
@@ -464,8 +465,8 @@ class WPScan:
                 self.usernames = sorted(set(self.usernames))
             #for user in self.usernames:
                 #msg = user; report.medium(msg)
-        except urllib2.HTTPError, e:
-            #print e.code
+        except urllib2.HTTPError as e:
+            #print(e.code)
             pass
         
     def WPAuthor(self):
@@ -478,8 +479,8 @@ class WPScan:
                 if wpUser : self.usernames = wpUser + self.usernames
                 wpUser = re.findall("/author/(.+?)/feed/", htmltext,re.IGNORECASE)
                 if wpUser : self.usernames = wpUser + self.usernames                 
-            except urllib2.HTTPError, e:
-                #print e.code
+            except urllib2.HTTPError as e:
+                #print(e.code)
                 pass
         self.usernames = sorted(set(self.usernames))
         for user in self.usernames:
@@ -495,8 +496,8 @@ class WPScan:
             htmltext = urllib2.urlopen(req).read()
             if re.findall(re.compile('Invalid username'),htmltext):
                 msg = "Forgotten Password Allows Username Enumeration: "+self.url+self.forgottenPsw; report.info(msg)        
-        except urllib2.HTTPError, e:
-            #print e.code
+        except urllib2.HTTPError as e:
+            #print(e.code)
             pass
 
     def WPHello(self):
@@ -506,8 +507,8 @@ class WPScan:
             fullPath = re.findall(re.compile('Fatal error.*>/(.+?/)hello.php'),htmltext)
             if fullPath :
                 msg = "Wordpress Hello Plugin Full Path Disclosure: "+"/"+fullPath[0]+"hello.php"; report.low(msg)
-        except urllib2.HTTPError, e:
-            #print e.code
+        except urllib2.HTTPError as e:
+            #print(e.code)
             pass
 
     def WPDirsListing(self):
@@ -525,9 +526,9 @@ class WPScan:
         noRedirOpener = urllib2.build_opener(NoRedirects())       
         try:
             htmltext = noRedirOpener.open(req).read()
-            print htmltext
+            print(htmltext)
             self.notValidLen.append(len(htmltext))
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             self.notValidLen.append(len(e.read()))
             self.notExistingCode = e.code
                         
@@ -537,8 +538,8 @@ class WPScan:
             htmltext = urllib2.urlopen(req).read()
             self.pluginsFound = re.findall(re.compile('/wp-content/plugins/(.+?)/'),htmltext)
             self.pluginsFound = sorted(set(self.pluginsFound))
-        except urllib2.HTTPError, e:
-            #print e.code
+        except urllib2.HTTPError as e:
+            #print(e.code)
             pass
 
     def WPplugins(self):
@@ -612,8 +613,8 @@ class WPScan:
             htmltext = opener.open(req).read()
             if re.search('<name>16</name>',htmltext):
                 msg = "Website vulnerable to XML-RPC Pingback Force Vulnerability"; report.low(msg)
-        except urllib2.HTTPError, e:
-            #print e.code
+        except urllib2.HTTPError as e:
+            #print(e.code)
             pass
         
     def WPXMLRPC_BF(self):
@@ -630,8 +631,8 @@ class WPScan:
             htmltext = opener.open(req).read()
             if re.search('<int>403</int>',htmltext):
                 msg = "Website vulnerable to XML-RPC Brute Force Vulnerability"; report.medium(msg)
-        except urllib2.HTTPError, e:
-            print e.code
+        except urllib2.HTTPError as e:
+            #print(e.code)
             pass
 
 
@@ -702,8 +703,8 @@ class JooScan:
                         searcher.query = ver; searcher.Core()
                         if ver == version[0]:
                             break 
-        except urllib2.HTTPError, e:
-            #print e.code
+        except urllib2.HTTPError as e:
+            #print(e.code)
             pass
 
     def JooTemplate(self):
@@ -718,8 +719,8 @@ class JooScan:
             if AdminTemplate[0] : 
                 msg = "Joomla Administrator Template: "+AdminTemplate[0]; report.info(msg)
                 searcher.query = AdminTemplate[0]; searcher.Themes()
-        except urllib2.HTTPError, e:
-            #print e.code
+        except (urllib2.HTTPError, IndexError) as e:
+            #print(e.code)
             pass
         
     def JooConfigFiles(self):
@@ -729,8 +730,8 @@ class JooScan:
                 htmltext = urllib2.urlopen(req).read()
                 if len(htmltext) not in self.notValidLen:
                     msg = "Configuration File Found: " +self.url+"/configuration"+file; report.high(msg)
-            except urllib2.HTTPError, e:
-                #print e.code
+            except urllib2.HTTPError as e:
+                #print(e.code)
                 pass        
     
     def JooDefaultFiles(self):
@@ -758,8 +759,8 @@ class JooScan:
                 htmltext = urllib2.urlopen(req).read()
                 if len(htmltext) not in self.notValidLen:
                     self.defFilesFound.append(self.url+file)
-            except urllib2.HTTPError, e:
-                #print e.code
+            except urllib2.HTTPError as e:
+                #print(e.code)
                 pass
         for file in self.defFilesFound:
             msg = file; report.info(msg)
@@ -774,8 +775,8 @@ class JooScan:
                 for user in jooUsers :
                     self.usernames.append(user[1])
                     msg =  user[1]+" "+user[0]; report.info(msg)
-        except urllib2.HTTPError, e:
-            #print e.code
+        except urllib2.HTTPError as e:
+            #print(e.code)
             pass 
         
     def JooDirsListing(self):
@@ -805,8 +806,8 @@ class JooScan:
         try:
             htmltext = noRedirOpener.open(req).read()
             self.notValidLen.append(len(htmltext))
-        except urllib2.HTTPError, e:
-            #print e.code
+        except urllib2.HTTPError as e:
+            #print(e.code)
             self.notValidLen.append(len(e.read()))
             self.notExistingCode = e.code
 
@@ -816,8 +817,8 @@ class JooScan:
             htmltext = urllib2.urlopen(req).read()
             self.pluginsFound = re.findall(re.compile('/modules/(.+?)/'),htmltext)
             self.pluginsFound = sorted(set(self.pluginsFound))
-        except urllib2.HTTPError, e:
-            #print e.code
+        except urllib2.HTTPError as e:
+            #print(e.code)
             pass
           
     def JooComponents(self):
@@ -896,8 +897,8 @@ class DruScan:
                         searcher.query = ver; searcher.Core()
                         if ver == version[0]:
                             break 
-        except urllib2.HTTPError, e:
-            #print e.code
+        except urllib2.HTTPError as e:
+            #print(e.code)
             pass
         
     def DruCore(self):
@@ -913,8 +914,8 @@ class DruScan:
                 msg = "Drupal Theme: "+ self.Drutheme ; report.info(msg)
                 searcher.query = [self.Drutheme] ; searcher.Themes()
             return DruTheme[0]
-        except urllib2.HTTPError, e:
-            #print e.code
+        except (urllib2.HTTPError, IndexError) as e:
+            #print(e.code)
             pass
 
     def DruConfigFiles(self):
@@ -924,8 +925,8 @@ class DruScan:
                 htmltext = urllib2.urlopen(req).read()
                 if len(htmltext) not in self.notValidLen:
                     msg = "Configuration File Found: " +self.url+"/sites/"+self.netloc+"/settings"+file; report.high(msg)
-            except urllib2.HTTPError, e:
-                #print e.code
+            except urllib2.HTTPError as e:
+                #print(e.code)
                 pass   
            
     def DruDefaultFiles(self):
@@ -970,8 +971,8 @@ class DruScan:
                 htmltext = urllib2.urlopen(req).read()
                 if len(htmltext) not in self.notValidLen:
                     self.defFilesFound.append(self.url+file)
-            except urllib2.HTTPError, e:
-                #print e.code
+            except urllib2.HTTPError as e:
+                #print(e.code)
                 pass
         for file in self.defFilesFound:
             msg = file; report.info(msg)
@@ -996,7 +997,7 @@ class DruScan:
                 self.usernames = usernames
                 for user in usernames:
                     msg = user; report.info(msg)
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             pass
         
     def DruBlog(self):
@@ -1014,12 +1015,12 @@ class DruScan:
                     user = re.findall(pattern,htmltext)
                     usernames = usernames + user
                     if user : msg = user[0] ; report.info(msg)
-                except urllib2.HTTPError, e:
+                except urllib2.HTTPError as e:
                     pass
             usernames = sorted(set(usernames))
             self.usernames = usernames
-        except urllib2.HTTPError, e:
-            #print e.code
+        except urllib2.HTTPError as e:
+            #print(e.code)
             pass
         
     def DruForgottenPassword(self):
@@ -1028,14 +1029,14 @@ class DruScan:
         data = urllib.urlencode(query_args)
         # HTTP POST Request
         req = urllib2.Request(self.url+self.forgottenPsw, data)
-        #print "[*] Trying Credentials: "+user+" "+pwd
+        #print("[*] Trying Credentials: "+user+" "+pwd)
         try:
             htmltext = urllib2.urlopen(req).read()
             if re.findall(re.compile('Sorry,.*N0t3xist!1234.*is not recognized'),htmltext):
                 msg = "Forgotten Password Allows Username Enumeration: "+self.url+self.forgottenPsw; report.info(msg)
                 report.WriteTextFile(msg)        
-        except urllib2.HTTPError, e:
-            #print e.code
+        except urllib2.HTTPError as e:
+            #print(e.code)
             pass
 
     def DruDirsListing(self):
@@ -1058,8 +1059,8 @@ class DruScan:
         try:
             htmltext = noRedirOpener.open(req).read()
             self.notValidLen.append(len(htmltext))
-        except urllib2.HTTPError, e:
-            #print e.code
+        except urllib2.HTTPError as e:
+            #print(e.code)
             self.notValidLen.append(len(e.read()))
             self.notExistingCode = e.code
 
@@ -1069,8 +1070,8 @@ class DruScan:
             htmltext = urllib2.urlopen(req).read()
             self.pluginsFound = re.findall(re.compile('/modules/(.+?)/'),htmltext)
             self.pluginsFound = sorted(set(self.pluginsFound))
-        except urllib2.HTTPError, e:
-            #print e.code
+        except urllib2.HTTPError as e:
+            #print(e.code)
             pass
                       
     def DruModules(self):
@@ -1103,8 +1104,12 @@ class ExploitDBSearch:
     def Core(self):
         if self.query is not None:
             # Get this value from their classes      
-            msg = "Searching Core Vulnerabilities for version "+self.query ; report.verbose(msg)           
-            htmltext = urllib2.urlopen("http://www.exploit-db.com/search/?action=search&filter_description="+self.cmstype+"+"+self.query).read()
+            msg = "Searching Core Vulnerabilities for version "+self.query ; report.verbose(msg)
+            try:
+                htmltext = urllib2.urlopen("http://www.exploit-db.com/search/?action=search&filter_description="+self.cmstype+"+"+self.query).read()
+            except urllib2.HTTPError as e:
+                #print(e.code)
+                pass
             regex = '/download/(.+?)/">'
             pattern =  re.compile(regex)
             ExploitID = re.findall(pattern,htmltext)
@@ -1215,10 +1220,10 @@ class ThreadScanner(threading.Thread):
             noRedirOpener = urllib2.build_opener(NoRedirects())
             try:
                 noRedirOpener.open(req); self.pluginsFound.append(plugin)
-            except urllib2.HTTPError, e:
+            except urllib2.HTTPError as e:
                 if e.code != self.notExistingCode and len(e.read()) not in self.notValidLen : self.pluginsFound.append(plugin)
-            except urllib2.URLError, e:
-                msg = "Thread Error: If this error persists, reduce number of threads"; print report.info(msg)
+            except urllib2.URLError as e:
+                msg = "Thread Error: If this error persists, reduce number of threads"; print(report.info(msg))
             self.q.task_done()       
 
 class BruteForcer:
@@ -1278,8 +1283,8 @@ class BruteForcer:
                         elif re.search('<name>isAdmin</name><value><boolean>1</boolean>',htmltext):
                             msg = "Valid ADMIN Credentials: "+user+" "+pwd; report.high(msg)
                             self.WPValidCredentials.append([user,pwd])
-                    except urllib2.HTTPError, e:
-                        print e.code
+                    except urllib2.HTTPError as e:
+                        #print(e.code)
                         pass
             # Try to upload a web shell with the discovered credentials 
             for WPCredential in self.WPValidCredentials :
@@ -1316,8 +1321,8 @@ class BruteForcer:
                         elif re.search('dashboard',htmltext,re.IGNORECASE):
                             msg = "Valid Credentials: "+user+" "+pwd; report.high(msg)
                             self.WPValidCredentials.append([user,pwd])                       
-                    except urllib2.HTTPError, e:
-                        #print e.code
+                    except urllib2.HTTPError as e:
+                        #print(e.code)
                         pass
                 self.pswlist.pop() # remove user
             # Try to upload a web shell with the discovered credentials 
@@ -1353,8 +1358,8 @@ class BruteForcer:
                             if re.findall(re.compile('Joomla - Administration - Control Panel'),htmltext):
                                 msg = "Valid Credentials: "+user+" "+pwd; report.high(msg)
                                 self.JooValidCredentials.append([user,pwd])
-                        except urllib2.HTTPError, e:
-                            #print e.code
+                        except urllib2.HTTPError as e:
+                            #print(e.code)
                             pass
                     self.pswlist.pop() # remove user
             # Try to upload a web shell with the discovered credentials 
@@ -1381,8 +1386,8 @@ class BruteForcer:
                             msg = "Account Lockout Enabled: Your IP address has been temporary blocked. Try it later or from a different IP address"
                             report.error(msg)
                             return
-                    except urllib2.HTTPError, e:
-                        #print e.code
+                    except urllib2.HTTPError as e:
+                        #print(e.code)
                         if e.code == 403:
                             msg = "Valid Credentials: "+user+" "+pwd; report.high(msg)
                             self.DruValidCredentials.append([user,pwd])
@@ -1426,8 +1431,8 @@ class PostExploit:
             else:
                 msg = "Unable to upload a shell. Try it manually"; report.error(msg)
         
-        except urllib2.HTTPError, e:
-            #print e.code
+        except urllib2.HTTPError as e:
+            #print(e.code)
             msg = "Unable to upload a shell. Probably you are not an admin."; report.error(msg)
             pass           
             
@@ -1477,8 +1482,8 @@ class PostExploit:
                         msg = htmltext; report.high(msg)
                         # shell found then exit
                         sys.exit()
-        except urllib2.HTTPError, e:
-            #print e.code
+        except urllib2.HTTPError as e:
+            #print(e.code)
             pass
         
     def JooShell(self,user,password):
@@ -1518,8 +1523,8 @@ class PostExploit:
                     report.WriteTextFile(msg)
             except AttributeError:
                 msg = user+" in Not admin"; report.message(msg)
-        except urllib2.HTTPError, e:
-            # print e.code
+        except urllib2.HTTPError as e:
+            # print(e.code)
             pass
 
     def JooWritableTemplate(self,user,password):
@@ -1590,8 +1595,8 @@ class PostExploit:
                 else:
                     msg = "Not Writable Joomla template: "+ template[0]; report.verbose(msg)
                 
-        except urllib2.HTTPError, e:
-            # print e.code
+        except urllib2.HTTPError as e:
+            # print(e.code)
             pass
 
     def DruShell(self,user,password):
@@ -1627,11 +1632,11 @@ class PostExploit:
                     msg = "CMSmap Drupal Shell Module Installed"; report.high(msg)
                     msg = "Web Shell: "+self.url+"/sites/all/modules/drushell/shell.php"; report.high(msg)
                     msg = "Remember to delete CMSmap Drupal Shell Module"; report.high(msg)
-            except IndexError :
+            except IndexError:
                 msg = "Unable to install CMSmap Drupal Shell Module. Check if it is already installed"
                 report.verbose(msg)
-        except urllib2.HTTPError, e:
-            # print e.code
+        except urllib2.HTTPError as e:
+            # print(e.code)
             pass
     
     def CrackingHashesType(self,hashfile,wordlist):
@@ -1680,7 +1685,7 @@ class GenericChecks:
             dirList = re.search("<title>Index of", htmltext,re.IGNORECASE)
             if dirList: 
                 msg = self.url+self.relPath ; report.low(msg)
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             pass
         
     def HTTPSCheck(self):
@@ -1694,7 +1699,7 @@ class GenericChecks:
                 htmltext = noRedirOpener.open(req).read()
                 msg = "Website Not in HTTPS: "+self.url
                 report.medium(msg)
-            except urllib2.HTTPError, e:
+            except urllib2.HTTPError as e:
                 redirected = re.search("https", str(e.info()),re.IGNORECASE)
                 if e.code != 302 and not redirected:
                     msg = "Website Not in HTTPS: "+self.url
@@ -1722,8 +1727,8 @@ class GenericChecks:
                 msg = "X-Content-Security-Policy: Not Enforced"; report.info(msg)
             if not response.info().getheader('x-content-type-options'):
                 msg = "X-Content-Type-Options: Not Enforced"; report.info(msg)
-        except urllib2.HTTPError, e:
-            #print e.code
+        except urllib2.HTTPError as e:
+            #print(e.code)
             pass
 
     def AutocompleteOff(self,relPath):
@@ -1735,7 +1740,7 @@ class GenericChecks:
             if not autoComp : 
                 msg = "Autocomplete Off Not Found: "+self.url+self.relPath
                 report.info(msg)
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             pass
         
     def RobotsTXT(self):
@@ -1744,7 +1749,7 @@ class GenericChecks:
             htmltext = urllib2.urlopen(req).read()
             if len(htmltext) not in self.notValidLen:
                 msg = "Robots.txt Found: " +self.url+"/robots.txt"; report.low(msg)
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             msg = "No Robots.txt Found"; report.low(msg)
             pass
     
@@ -1755,7 +1760,7 @@ class GenericChecks:
             try:
                 htmltext = noRedirOpener.open(req).read()
                 self.notValidLen.append(len(htmltext))
-            except urllib2.HTTPError, e:
+            except urllib2.HTTPError as e:
                 self.notValidLen.append(len(e.read()))
                 self.notExistingCode = e.code
         for exten in self.commExt:
@@ -1763,8 +1768,8 @@ class GenericChecks:
             try:
                 htmltext = urllib2.urlopen(req).read() 
                 self.notValidLen.append(len(htmltext))
-            except urllib2.HTTPError, e:
-                #print e.code
+            except urllib2.HTTPError as e:
+                #print(e.code)
                 self.notValidLen.append(len(e.read()))
                 self.notExistingCode = e.code
         self.notValidLen = sorted(set(self.notValidLen))
@@ -1812,7 +1817,7 @@ class Report:
             self.yellow = '\033[93m'
             self.end = '\033[0m'
             
-        else:# Disalbing col for windows and pipes
+        else:# Disabling col for windows and pipes
             self.green = ""
             self.orange = ""
             self.blue = ""
@@ -1822,45 +1827,44 @@ class Report:
             self.yellow = ""
             self.end = ""
             
-    def info(self,msg):
+    def info(self, msg):
         self.WriteTextFile("[I] " +msg)
-        msg = self.green + "[I] " + self.end + msg; print msg
+        msg = self.green + "[I] " + self.end + msg; print(msg)
 
-    def low(self,msg):
+    def low(self, msg):
         self.WriteTextFile("[L] " +msg)
-        msg = self.yellow + "[L] " + self.end + msg; print msg
+        msg = self.yellow + "[L] " + self.end + msg; print(msg)
 
-    def medium(self,msg):
+    def medium(self, msg):
         self.WriteTextFile("[M] " +msg)
-        msg = self.orange + "[M] " + self.end + msg; print msg
+        msg = self.orange + "[M] " + self.end + msg; print(msg)
         
-    def high(self,msg):
+    def high(self, msg):
         self.WriteTextFile("[H] " +msg)
-        msg = self.red + "[H] " + self.end + msg; print msg
+        msg = self.red + "[H] " + self.end + msg; print(msg)
 
-    def status(self,msg):
+    def status(self, msg):
         self.WriteTextFile("[-] " +msg)
-        msg = self.blue + "[-] " + self.end + msg; print msg
+        msg = self.blue + "[-] " + self.end + msg; print(msg)
         
-    def message(self,msg):
-        msg = "[-] " + msg; print msg
+    def message(self, msg):
+        msg = "[-] " + msg; print(msg)
         self.WriteTextFile(msg)
         
-    def error(self,msg):
+    def error(self, msg):
         self.WriteTextFile("[ERROR] " +msg)
-        msg = self.red + "[ERROR] " + self.end + msg; print msg
+        msg = self.red + "[ERROR] " + self.end + msg; print(msg)
 
-    def verbose(self,msg):
+    def verbose(self, msg):
         if verbose:
             self.WriteTextFile("[v] " +msg)
-            msg = self.grey + "[v] " + self.end + msg; print msg
+            msg = self.grey + "[v] " + self.end + msg; print(msg)
         
-    def WriteTextFile(self,msg):
+    def WriteTextFile(self, msg):
         if output:
             self.log += "\n"+msg
-            f = open(self.fn,"w")
-            f.write(self.log)
-            f.close()
+            with open(self.fn,"w") as f:
+                f.write(self.log)
     
     def WriteHTMLFile(self):
         pass
@@ -1893,7 +1897,7 @@ def exit(signum, frame):
     signal.signal(signal.SIGINT, exit)
 
 def usage(version):
-    print "CMSmap tool v"+str(version)+" - Simple CMS Scanner\nAuthor: Mike Manzotti mike.manzotti@dionach.com\nUsage: " + os.path.basename(sys.argv[0]) + """ -t <URL>
+    print("CMSmap tool v"+str(version)+" - Simple CMS Scanner\nAuthor: Mike Manzotti mike.manzotti@dionach.com\nUsage: " + os.path.basename(sys.argv[0]) + """ -t <URL>
 Targets:
      -t, --target    target URL (e.g. 'https://example.com:8080/')
      -f, --force     force scan (W)ordpress, (J)oomla or (D)rupal
@@ -1918,12 +1922,12 @@ Others:
      -U, --update    (C)MSmap, (W)ordpress plugins and themes, (J)oomla components, (D)rupal modules, (A)ll
      -h, --help      show this help
 
-Examples:"""
-    print "     "+ os.path.basename(sys.argv[0]) +" -t https://example.com"
-    print "     "+ os.path.basename(sys.argv[0]) +" -t https://example.com -f W -F --noedb"
-    print "     "+ os.path.basename(sys.argv[0]) +" -t https://example.com -i targets.txt -o output.txt"
-    print "     "+ os.path.basename(sys.argv[0]) +" -t https://example.com -u admin -p passwords.txt"
-    print "     "+ os.path.basename(sys.argv[0]) +" -k hashes.txt -w passwords.txt"
+Examples:""")
+    print("     "+ os.path.basename(sys.argv[0]) +" -t https://example.com")
+    print("     "+ os.path.basename(sys.argv[0]) +" -t https://example.com -f W -F --noedb")
+    print("     "+ os.path.basename(sys.argv[0]) +" -t https://example.com -i targets.txt -o output.txt")
+    print("     "+ os.path.basename(sys.argv[0]) +" -t https://example.com -u admin -p passwords.txt")
+    print("     "+ os.path.basename(sys.argv[0]) +" -k hashes.txt -w passwords.txt")
     
 if __name__ == "__main__":
     # command line arguments
@@ -2039,5 +2043,3 @@ if __name__ == "__main__":
     msg = "Completed in: "+str(datetime.timedelta(seconds=diffTime)).split(".")[0]
     report.status(msg)
     if output: msg = "Output File Saved in: "+report.fn; report.status(msg) 
-    
-    
